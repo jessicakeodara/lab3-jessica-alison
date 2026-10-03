@@ -43,8 +43,9 @@ def short_xml_parse(fp, tag, max_elements=None):
 # PCLVocab
 #####################################################################
 
-class PCLVocab(): 
+class PCLVocab():
     def __init__(self, vocab_file, vocab_size, num_stop_words): 
+        """ Construct a PCLVocab """
         start_index = 0 if num_stop_words is None else num_stop_words
         end_index = start_index + vocab_size if vocab_size is not None else None
 
@@ -52,12 +53,17 @@ class PCLVocab():
         self._dict = dict([(w, i) for (i, w) in enumerate(self._words)])
 
     def __len__(self): 
+        """ Returns the length of the PCL vocab dictionary """
         return len(self._dict)
 
     def index_to_label(self, i): 
+        """ Obtains the label at a given index """
         return self._words[i]
 
     def __getitem__(self, key):
+        """
+        Obtains the key's index
+        """
         if key in self._dict: return self._dict[key]
         else: return None
 
@@ -75,11 +81,15 @@ class PCLLabels(ABC):
         return self._label_list[index]
 
     def process(self, label_file, max_instances=None):
+        """
+        Returns a list of indicies of every extracted label for every example in the XML file.
+        """
+        # Make a list of all extracted labels for every example
         y_labeled = list(map(self._extract_label, do_xml_parse(label_file, 'example', max_elements=max_instances)))
         if self.labels is None:
             self._label_list = sorted(set(y_labeled))
             self.labels = dict([(x,i) for (i,x) in enumerate(self._label_list)])
-            
+        
         y = [self.labels[x] for x in y_labeled]
         return y
 
@@ -98,10 +108,19 @@ class PCLFeatures(ABC):
         self.vectorizer = DictVectorizer(sparse=True)
 
     def extract_text(self, example):
+        """
+        Obtains a list of each word (lowercased) in example's inner text.
+        """
         return unescape("".join([x for x in example.itertext()]).lower()).split()
 
     def process(self, data_file, max_instances=None):
+        """
+        Returns a tuple containing:
+            - Vector array of features for each example in data_file
+            - List of IDs for each example in the file
+        """
         if max_instances == None:
+            # Obtain the max number of examples
             N = len([1 for example in do_xml_parse(data_file, 'example')])
         else:
             N = max_instances
@@ -112,6 +131,8 @@ class PCLFeatures(ABC):
             ids.append(example.get("id"))
             features = self._extract_features(example)
             feature_counters.append(Counter(features))
+        
+        # Obtain a 2D vector array of features learned 
         X = self.vectorizer.fit_transform(feature_counters)
         return X, ids
 
