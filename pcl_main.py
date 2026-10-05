@@ -9,6 +9,84 @@ import argparse
 import sys
 from PCLDataReader import PCLLabels, PCLFeatures, PCLVocab
 
+
+#####################################################################
+# BinaryLabels
+#####################################################################
+
+class BinaryLabels(PCLLabels):
+    """docstring"""
+
+    def __init__(self):
+        super().__init__()
+
+    @override
+    def _extract_label(self, example):
+        """Semi-private function
+           Extracts condescension atrributes
+        Inputs: self
+                example: XML file to extract
+        Output: value of condescension for example"""
+        return example.attrib["condescension"]
+
+
+#####################################################################
+# CategoryLabels
+#####################################################################
+
+class CategoryLabels(PCLLabels):
+    """docstring"""
+
+    def __init__(self):
+        super().__init__()
+
+    @override
+    def _extract_label(self, example, label):
+        """Semi-private function
+           Extracts condescension atrributes
+        Inputs: self
+                example: XML file to extract
+                label: pull from this example category
+        Output: value of label for example"""
+        return example.attrib[label]
+
+#####################################################################
+# MyFeatures
+#####################################################################
+
+class MyFeatures(PCLFeatures):
+    """docstring"""
+
+    def __init__(self, vocab):
+        super().__init__(vocab)
+
+    @override
+    def _extract_features(self, example):
+        """Extracts features from example
+        Inputs: self
+                example: XML file to extract
+        Output: list of words in the input vocabulary"""
+        example_text =  self.extract_text(example)
+        vocab_text = open("/courses/cs159/data/patronize/vocab.txt", "r").read().split()
+
+        feature_list = []
+        for elem in example_text:
+            if elem in vocab_text:
+                feature_list.append(elem)
+
+        return feature_list
+
+    @override
+    def _get_feature_name(self, i):
+        """ Returns a human-readable name for the ith feature in the DictVectorizer's internal vocabulary """
+        return MyFeatures.vectorizer.vocabulary_.get_key(i)
+
+    @override        
+    def _get_num_features(self):
+        """ Return the total number of features """
+        return len(MyFeatures.vectorizer.vocabulary_)
+
+
 def do_experiment(args): 
     raise NotImplementedError
 
