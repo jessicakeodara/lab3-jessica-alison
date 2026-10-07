@@ -115,7 +115,7 @@ class PCLFeatures(ABC):
 
     def process(self, data_file, max_instances=None):
         """
-        Returns a tuple containing:
+        Returns a sparse matrix containing:
             - Vector array of features for each example in data_file
             - List of IDs for each example in the file
         """
@@ -127,13 +127,17 @@ class PCLFeatures(ABC):
         
         ids = []
         feature_counters = []
+        # Obtain a list of each example's counter of features
         for example in do_xml_parse(data_file, 'example', max_elements=N, progress_message="Example {}"):
             ids.append(example.get("id"))
             features = self._extract_features(example)
             feature_counters.append(Counter(features))
         
         # Obtain a 2D vector array of features learned 
+        print("From PCLFeatures, feature_counters: " + str(feature_counters))
         X = self.vectorizer.fit_transform(feature_counters)
+        print("X: " + str(X))
+        print("IDS: "+ str(ids))
         return X, ids
 
     @abstractmethod

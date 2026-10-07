@@ -31,6 +31,17 @@ class TestPCL(unittest.TestCase):
         data_file = open(self.TEST_DATA_FILE, 'rb')
         X, _ = features.process(data_file, max_instances=1)
         final_vocab = [features._get_feature_name(i) for i in range(X.shape[1])]
+
+        vocab = [vocabulary.index_to_label(i) for i in range(vocabulary.__len__())]
+        print("PCLVocab: " + str(vocab))
+        features.vocab()    # obtaining what features' initial vocab is
+        print("sparse matrix: " + str((X, _)))
+        
+        print("features " + str(features))
+        print("X " + str(X))
+        print("final_vocab " + str(final_vocab))
+        
+
         self.assertTrue('.' in final_vocab)
         self.assertTrue('and' in final_vocab)
         self.assertTrue('in' in final_vocab)
