@@ -19,7 +19,7 @@ import sys
 
 def do_xml_parse(fp, tag, max_elements=None, progress_message=None):
     """ 
-    Parses cleaned up spacy-processed XML files
+    Parses cleaned up SpaCy-processed XML files
     """
     fp.seek(0)
 
@@ -44,8 +44,11 @@ def short_xml_parse(fp, tag, max_elements=None):
 #####################################################################
 
 class PCLVocab():
+    """Vocab of PCL
+    """
+
     def __init__(self, vocab_file, vocab_size, num_stop_words): 
-        """ Construct a PCLVocab """
+        """ Construct a PCLVocab"""
         start_index = 0 if num_stop_words is None else num_stop_words
         end_index = start_index + vocab_size if vocab_size is not None else None
 
@@ -72,7 +75,14 @@ class PCLVocab():
 #####################################################################
 
 class PCLLabels(ABC):
+    """
+    Extracts attributes of PCL
+    """
+
     def __init__(self): 
+        """
+        Constructs PCLLabels with no args
+        """
         self.labels = None
         self._label_list = None
 
@@ -102,8 +112,16 @@ class PCLLabels(ABC):
 # PCLFeatures
 #####################################################################
 
-class PCLFeatures(ABC): 
+class PCLFeatures(ABC):
+    """
+    Extracts words in PCL
+    """
+
     def __init__(self, vocab):
+        """
+        Constructs PCLFeatures
+        Attributes: vocab (PCLVocab)
+        """
         self.initial_vocab = vocab
         self.vectorizer = DictVectorizer(sparse=True)
 
