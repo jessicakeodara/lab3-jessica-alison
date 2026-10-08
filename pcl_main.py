@@ -10,6 +10,7 @@ import sys
 from typing import override
 from PCLDataReader import PCLLabels, PCLFeatures, PCLVocab
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import cross_val_predict, StratifiedKFold
 import numpy as np
 
 
@@ -108,15 +109,18 @@ def do_experiment(args):
     mycat = CategoryLabels()
     example_category = mycat.process(args.data_file)
 
-    # number of folds
-    if args.xvalidate:
-        pass
-    # use examples from category as test data
-    elif args.test_category:
-        np.where(args.test_category in example_category)
-
     clf = MultinomialNB()
 
+    # number of folds
+    if args.xvalidate:
+        y_pred = cross_val_predict(clf, feature, target, cv = args.xvalidate, method='predict')
+        args.output_file.write(y_pred._extract_label() + " " + y_pred + " " + [for x in target append cross_val_predict_proba(x)])
+    # use examples from category as test data
+    elif args.test_category:
+        test_example = np.where(args.test_category in example_category)
+        train_example = np.where(args.test_category not in example_category)
+        clf.fit(test_example, train_example)
+        args.output_file.write(??? + " " + prediction + " " + confidence)
 
 
 
