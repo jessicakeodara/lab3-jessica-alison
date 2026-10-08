@@ -9,6 +9,8 @@ import argparse
 import sys
 from typing import override
 from PCLDataReader import PCLLabels, PCLFeatures, PCLVocab
+from sklearn.naive_bayes import MultinomialNB
+import numpy as np
 
 
 #####################################################################
@@ -94,7 +96,31 @@ class MyFeatures(PCLFeatures):
 
 
 def do_experiment(args): 
-    raise NotImplementedError
+    myvocab = PCLVocab(args.data_file)
+    myfeatures = MyFeatures(myvocab)
+    feature = myfeatures.process(args.data_file)
+
+    args.data_file.seek(0)
+    mybinary = BinaryLabels()
+    target = mybinary.process(args.data_file)
+
+    args.data_file.seek(0)
+    mycat = CategoryLabels()
+    example_category = mycat.process(args.data_file)
+
+    # number of folds
+    if args.xvalidate:
+        pass
+    # use examples from category as test data
+    elif args.test_category:
+        np.where(args.test_category in example_category)
+
+    clf = MultinomialNB()
+
+
+
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -152,10 +152,7 @@ class PCLFeatures(ABC):
             feature_counters.append(Counter(features))
         
         # Obtain a 2D vector array of features learned 
-        print("From PCLFeatures, feature_counters: " + str(feature_counters))
         X = self.vectorizer.fit_transform(feature_counters)
-        print("X: " + str(X))
-        print("IDS: "+ str(ids))
         return X, ids
 
     @abstractmethod
