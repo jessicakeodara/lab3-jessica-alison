@@ -10,7 +10,8 @@ import sys
 from typing import override
 from PCLDataReader import PCLLabels, PCLFeatures, PCLVocab
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.model_selection import cross_val_predict, StratifiedKFold
+from sklearn.model_selection import cross_val_predict
+from sklearn.dummy import DummyClassifier
 import numpy as np
 
 
@@ -78,7 +79,6 @@ class MyFeatures(PCLFeatures):
         for word in example_text:
             if word in self.initial_vocab._words:
                 feature_list.append(word)
-
         return feature_list
 
     @override
@@ -97,31 +97,37 @@ class MyFeatures(PCLFeatures):
 
 
 def do_experiment(args): 
-    myvocab = PCLVocab(args.data_file)
+    myvocab = PCLVocab(args.vocabulary, args.vocab_size, args.stop_words)
     myfeatures = MyFeatures(myvocab)
-    feature = myfeatures.process(args.data_file)
+    feature, feature_id = myfeatures.process(args.data_file)
 
     args.data_file.seek(0)
     mybinary = BinaryLabels()
-    target = mybinary.process(args.data_file)
+    target = mybinary.process(args.data_file)   # list of indeces
 
     args.data_file.seek(0)
     mycat = CategoryLabels()
     example_category = mycat.process(args.data_file)
 
-    clf = MultinomialNB()
+    clf = DummyClassifier(strategy="prior")
 
-    # number of folds
-    if args.xvalidate:
-        y_pred = cross_val_predict(clf, feature, target, cv = args.xvalidate, method='predict')
-        args.output_file.write(y_pred._extract_label() + " " + y_pred + " " + [for x in target append cross_val_predict_proba(x)])
+
     # use examples from category as test data
-    elif args.test_category:
+    if args.test_category:
         test_example = np.where(args.test_category in example_category)
         train_example = np.where(args.test_category not in example_category)
-        clf.fit(test_example, train_example)
-        args.output_file.write(??? + " " + prediction + " " + confidence)
+        clf.fit(feature, train_example)
+        prediction = clf.predict(test_example)
+        confidence = clf.predict_proba(test_example)
+        for i in range(len(feature_id)):
+            args.output_file.write(feature_id[i] + " " +  mybinary[prediction[i]] + " " + str(confidence[i][prediction[i]])+ "\n")
+    # number of folds
+    elif args.xvalidate:
+        pred = cross_val_predict(clf, feature, target, cv = args.xvalidate, method='predict')
+        pred_proba = cross_val_predict(clf, feature, target, cv = args.xvalidate, method='predict_proba')
 
+        for i in range(len(feature_id)):
+            args.output_file.write(feature_id[i] + " " + mybinary[pred[i]] + " " + str(pred_proba[i][pred[i]]) + "\n")
 
 
 
@@ -142,4 +148,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     do_experiment(args)
 
-    for fp in (args.output_file, args.training, args.labels, args.vocabulary): fp.close()
+    for fp in (args.output_file, args.data_file, args.vocabulary): fp.close()
