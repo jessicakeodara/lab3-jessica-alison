@@ -76,9 +76,14 @@ class MyFeatures(PCLFeatures):
         example_text =  self.extract_text(example)
 
         feature_list = []
+        grammar = ["it", "the", "a", "an", "to", "of", "and", "on", "in", "at", "by", "for", "with", "from"]
         for word in example_text:
-            if word in self.initial_vocab._words:
+            if word in self.initial_vocab._words and word not in grammar:
                 feature_list.append(word)
+            if word.isupper():
+                feature_list.append("CONTAINS_UPPERCASE")
+            # if word == "God":
+            #     feature_list.append("CONTAINS_GOD")
         return feature_list
 
     @override
@@ -108,17 +113,22 @@ def do_experiment(args):
     args.data_file.seek(0)
     mycat = CategoryLabels()
     example_category = mycat.process(args.data_file)
-
-    clf = DummyClassifier(strategy="prior")
-
+    categories = np.array(mycat.labels)
+    category = np.array(mycat.process(args.data_file))
+    clf = MultinomialNB()
 
     # use examples from category as test data
     if args.test_category:
-        test_example = np.where(args.test_category in example_category)
-        train_example = np.where(args.test_category not in example_category)
-        clf.fit(feature, train_example)
-        prediction = clf.predict(test_example)
-        confidence = clf.predict_proba(test_example)
+        # cat_index = category[args.test_category]
+        cat_index = 8           # considering that vulnerable will be 8.
+        print(category)
+        print(categories)
+        test = np.where(category in categories)
+        train = np.where(category not in categories)
+
+        clf.fit(feature[train], target[train])
+        prediction = clf.predict(test)
+        confidence = clf.predict_proba(test)
         for i in range(len(feature_id)):
             args.output_file.write(feature_id[i] + " " +  mybinary[prediction[i]] + " " + str(confidence[i][prediction[i]])+ "\n")
     # number of folds
